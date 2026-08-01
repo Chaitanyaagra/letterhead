@@ -54,26 +54,12 @@
   .login-btn {
     width: 100%; background: var(--accent); color: #fff;
     padding: 12px; border: none; border-radius: 6px;
-    font-size: 15px; font-weight: bold; cursor: pointer;
+    font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px;
   }
   .login-btn:active { background: var(--accent-dark); }
   .error-msg { color: #d9534f; font-size: 12px; margin-top: 10px; display: none; }
 
-  /* ---------- App Download Popup ---------- */
-  #appBanner {
-    display: none; background: #fff; padding: 12px 16px;
-    border-bottom: 1px solid var(--line);
-    align-items: center; justify-content: space-between;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  }
-  .app-info { display: flex; align-items: center; gap: 10px; }
-  .app-icon { width: 40px; height: 40px; background: var(--accent); border-radius: 8px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
-  .app-text h4 { margin: 0; font-size: 14px; }
-  .app-text p { margin: 0; font-size: 11px; color: var(--muted); }
-  .btn-install { background: var(--accent); color: #fff; border: none; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
-  .btn-close-banner { background: none; border: none; font-size: 18px; color: var(--muted); cursor: pointer; margin-left: 10px; }
-
-  /* ---------- Main Workspace (Hidden initially) ---------- */
+  /* ---------- Main Workspace ---------- */
   #mainWorkspace { display: none; flex-direction: column; min-height: 100vh; }
 
   /* ---------- Top bar ---------- */
@@ -81,55 +67,163 @@
     position: sticky; top: 0; z-index: 30;
     background: linear-gradient(180deg, var(--accent), var(--accent-dark));
     color: #fff; padding: 10px 14px; box-shadow: 0 2px 10px rgba(21,48,60,.18);
+    display: flex; justify-content: space-between; align-items: center;
   }
   .topbar h1 { font-size: 16px; font-weight: 700; margin: 0; letter-spacing: .2px; }
-  .topbar p { margin: 2px 0 0; font-size: 11px; opacity: .85; font-weight: 500; }
-
-  /* ---------- Toolbar & Template Selector ---------- */
-  .toolbar {
-    position: sticky; top: 56px; z-index: 25;
-    background: var(--panel); border-bottom: 1px solid var(--line);
-    padding: 8px 10px; display: flex; flex-direction: column; gap: 8px;
-  }
-  .tools-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; align-items: center; }
-  .tools-row::-webkit-scrollbar { display: none; }
   
-  .template-select {
-    width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 6px;
-    font-size: 13px; font-family: inherit; color: var(--ink); outline: none;
-    background: #f9fbfd; font-weight: 600;
+  .btn-download {
+    background: #fff; color: var(--accent-dark); border: none; 
+    padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer;
   }
 
-  .grp { display: flex; gap: 4px; align-items: center; flex: 0 0 auto; padding-right: 8px; margin-right: 2px; border-right: 1px solid var(--line); }
-  .grp:last-child { border-right: none; }
+  /* ---------- Toolbar ---------- */
+  .toolbar {
+    position: sticky; top: 40px; z-index: 25;
+    background: var(--panel); border-bottom: 1px solid var(--line);
+    padding: 8px 10px; display: flex; gap: 8px; justify-content: center;
+  }
+  
   .tbtn {
-    flex: 0 0 auto; min-width: 34px; height: 34px; padding: 0 8px;
+    min-width: 34px; height: 34px; padding: 0 8px;
     border: 1px solid var(--line); background: #fff; color: var(--ink);
     border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;
-    display: inline-flex; align-items: center; justify-content: center; gap: 4px;
   }
-  .tbtn:active { background: #eef4f7; }
-  .tbtn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .tbtn small { font-size: 10px; font-weight: 600; }
+  .tbtn:hover { background: #eef4f7; }
 
   /* ---------- Stage & sheet ---------- */
-  .stage { background: var(--desk); padding: 14px 10px 20px; display: flex; justify-content: center; flex: 1; }
+  .stage { background: var(--desk); padding: 20px 10px; display: flex; justify-content: center; flex: 1; }
   .sheet {
-    width: 100%; max-width: 600px;
+    width: 100%; max-width: 700px;
     background: #ffffff;
     box-shadow: 0 8px 26px rgba(21,48,60,.15);
     border-radius: 4px;
     position: relative;
-    padding: 40px 30px;
+    padding: 40px 50px;
     min-height: 800px;
     border-top: 15px solid var(--accent);
   }
   
   .letterhead-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid var(--accent); padding-bottom: 15px; }
-  .letterhead-header h2 { margin: 0; color: var(--accent-dark); font-size: 22px; font-weight: 900; }
-  .letterhead-header p { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+  .letterhead-header h2 { margin: 0; color: var(--accent-dark); font-size: 24px; font-weight: 900; text-transform: uppercase; }
+  .letterhead-header p { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
 
-  .meta-row { display: flex; justify-content: space-between; margin-bottom: 25px; font-size: var(--lbl-fs); font-weight: bold; }
+  .meta-row { display: flex; justify-content: space-between; margin-bottom: 25px; font-size: var(--body-fs); font-weight: bold; }
   
   .field {
-    outline: none; color: var(--ink); font-family:
+    outline: none; color: var(--ink); font-family: inherit;
+    min-width: 100px; display: inline-block; border-bottom: 1px dashed #ccc;
+  }
+  
+  .content-area {
+      outline: none;
+      min-height: 400px;
+      line-height: 1.6;
+      font-size: var(--body-fs);
+  }
+</style>
+</head>
+<body>
+
+  <!-- Login Screen -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <h2>Max Heights Majestic</h2>
+      <p>Residential Welfare Society</p>
+      <div class="input-group">
+        <label>Username</label>
+        <input type="text" id="username" placeholder="Enter admin username">
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Enter password">
+      </div>
+      <button class="login-btn" onclick="login()">लॉग इन करें</button>
+      <div class="error-msg" id="errorMsg">कृपया कोई भी नाम डालकर लॉग इन करें।</div>
+    </div>
+  </div>
+
+  <!-- Main Workspace -->
+  <div id="mainWorkspace">
+    <div class="topbar">
+      <h1>पत्र मेकर</h1>
+      <button class="btn-download" onclick="downloadPDF()">PDF डाउनलोड करें</button>
+    </div>
+
+    <div class="toolbar">
+      <button class="tbtn" onclick="formatText('bold')"><b>B</b></button>
+      <button class="tbtn" onclick="formatText('italic')"><i>I</i></button>
+      <button class="tbtn" onclick="formatText('underline')"><u>U</u></button>
+      <button class="tbtn" onclick="formatText('justifyCenter')">Center</button>
+      <button class="tbtn" onclick="formatText('justifyLeft')">Left</button>
+    </div>
+
+    <div class="stage">
+      <div class="sheet" id="printArea">
+        <div class="letterhead-header">
+          <h2>Max Heights Majestic RWS</h2>
+          <p>Community Management & Safety Administration</p>
+        </div>
+        
+        <div class="meta-row">
+          <span>संदर्भ क्र.: <span class="field" contenteditable="true">MH-2026/01</span></span>
+          <span>दिनांक: <span class="field" contenteditable="true"></span></span>
+        </div>
+
+        <div class="content-area" contenteditable="true">
+            <div style="text-align: center; font-weight: bold; margin-bottom: 20px;">
+                विषय: आगामी कम्युनिटी क्लीनिंग ड्राइव (स्वच्छता अभियान) के संबंध में
+            </div>
+            <p>प्रिय निवासियों,</p>
+            <p>हमारी सोसाइटी को स्वच्छ और सुरक्षित बनाए रखने के लिए, RWS एक कम्युनिटी क्लीनिंग ड्राइव का आयोजन कर रहा है। सभी स्वयंसेवकों से अनुरोध है कि वे इस अभियान में बढ़-चढ़ कर हिस्सा लें।</p>
+            <p><b>मुख्य गतिविधियां:</b></p>
+            <ul>
+                <li>क्लब हाउस और कॉमन एरिया की सफाई</li>
+                <li>पार्किंग जोन का निरीक्षण</li>
+            </ul>
+            <p>धन्यवाद,<br><br><b>अधिकृत हस्ताक्षरकर्ता</b><br>Max Heights Majestic RWS</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Simple Login Logic
+  function login() {
+    const user = document.getElementById('username').value;
+    if(user.trim() !== "") {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('mainWorkspace').style.display = 'flex';
+      
+      // Auto-set today's date
+      const today = new Date();
+      const dateString = today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear();
+      document.querySelectorAll('.meta-row .field')[1].innerText = dateString;
+    } else {
+      document.getElementById('errorMsg').style.display = 'block';
+    }
+  }
+
+  // Text Formatting
+  function formatText(command) {
+    document.execCommand(command, false, null);
+  }
+
+  // PDF Generation using html2canvas & jsPDF
+  window.jsPDF = window.jspdf.jsPDF;
+  function downloadPDF() {
+    const sheet = document.getElementById('printArea');
+    
+    html2canvas(sheet, { scale: 2 }).then(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('Society-Letter.pdf');
+    });
+  }
+</script>
+</body>
+</html>
