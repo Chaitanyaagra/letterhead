@@ -1,0 +1,35 @@
+{
+  "name": "Max Heights Majestic - Letter Maker",
+  "short_name": "Letter Maker",
+  "description": "Official letterhead, digital seal, and multi-user approval tool for Max Heights Majestic Resident Welfare Society.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#eef1f3",
+  "theme_color": "#2c6f90",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "en-IN"
+}
