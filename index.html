@@ -91,12 +91,16 @@
   .kebab{width:38px;height:38px;border:none;background:rgba(255,255,255,.14);color:#fff;border-radius:10px;
     font-size:19px;cursor:pointer;flex:0 0 auto;line-height:1;}
   .menu{position:absolute;right:8px;top:52px;background:#fff;border-radius:12px;
-    box-shadow:0 12px 30px rgba(21,48,60,.28);padding:6px;display:none;min-width:210px;z-index:40;}
-  .menu.show{display:block;}
+    box-shadow:0 12px 30px rgba(21,48,60,.28);padding:6px;min-width:210px;z-index:40;
+    opacity:0;visibility:hidden;transform:translateY(-6px) scale(.96);transform-origin:top right;
+    transition:opacity .16s ease,transform .16s ease,visibility 0s linear .16s;}
+  .menu.show{opacity:1;visibility:visible;transform:translateY(0) scale(1);transition:opacity .16s ease,transform .16s ease;}
   .menu button{display:block;width:100%;text-align:left;border:none;background:none;padding:11px 12px;
     font-size:13.5px;font-weight:600;color:var(--ink);border-radius:9px;cursor:pointer;}
   .menu button:active{background:#eef4f7;}
   .menu hr{border:none;border-top:1px solid var(--line);margin:5px 8px;}
+  .menu .grouplabel{padding:9px 12px 4px;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .menu .pbadge{display:inline-block;min-width:16px;padding:0 5px;height:16px;line-height:16px;border-radius:8px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;text-align:center;margin-left:6px;vertical-align:1px;}
 
   .toolbar{position:sticky;top:52px;z-index:25;background:var(--panel);border-bottom:1px solid var(--line);
     display:flex;gap:6px;overflow-x:auto;padding:8px 10px;scrollbar-width:none;align-items:center;}
@@ -157,11 +161,17 @@
   .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
   .modal-actions .abtn{height:44px;}
 
-  .sheetpop{position:fixed;inset:0;z-index:90;display:none;background:rgba(15,30,40,.55);}
-  .sheetpop.show{display:block;}
+  .sheetpop{position:fixed;inset:0;z-index:90;background:rgba(15,30,40,.55);
+    opacity:0;visibility:hidden;transition:opacity .26s ease,visibility 0s linear .26s;}
+  .sheetpop.show{opacity:1;visibility:visible;transition:opacity .26s ease;}
   .sheetpop .card{position:absolute;left:0;right:0;bottom:0;max-height:88vh;overflow:auto;background:#fff;
     border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));
-    box-shadow:0 -8px 30px rgba(0,0,0,.3);}
+    box-shadow:0 -8px 30px rgba(0,0,0,.3);
+    transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1);}
+  .sheetpop.show .card{transform:translateY(0);}
+  @media (prefers-reduced-motion:reduce){
+    .sheetpop,.sheetpop .card,.menu{transition:none!important;}
+  }
   .sheetpop h3{margin:2px 0 4px;font-size:15.5px;}
   .sheetpop .sub{margin:0 0 12px;font-size:12.5px;color:var(--muted);line-height:1.55;}
   .sheetpop .btns{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px;}
@@ -268,20 +278,27 @@
     <div class="tt"><h1>Letter Maker</h1><p>Max Heights Majestic Resident Welfare Society</p></div>
     <button class="kebab" id="kebab">⋮</button>
     <div class="menu" id="menu">
+      <div id="menuWho" style="padding:9px 12px;border-bottom:1px solid var(--line);margin-bottom:2px">
+        <div style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800">Signed in as</div>
+        <div id="menuWhoName" style="font-size:13.5px;font-weight:700;color:var(--ink);margin-top:2px">—</div>
+      </div>
+      <div class="grouplabel">Create</div>
       <button data-m="tpl">📋 Letter templates</button>
-      <button data-m="reg">🗂 Saved letters register</button>
       <button data-m="bulk">👥 Bulk letters (all flats)</button>
       <button data-m="bearer">✒ Signatory block</button>
+      <button data-m="clear">✕ New letter (clear)</button>
+      <div class="grouplabel">Your letters</div>
+      <button data-m="reg">🗂 Drafts (this device)</button>
+      <button data-m="pending">⏳ Awaiting signatures<span class="pbadge" id="pendingBadge" style="display:none">0</span></button>
+      <button data-m="approved">✅ Signed &amp; approved</button>
+      <div class="grouplabel">Identity &amp; security</div>
       <button data-m="sig">✍ Signature &amp; stamp</button>
       <button data-m="verify">🔍 Verify document</button>
-      <button data-m="pending">📝 Pending approvals</button>
       <button data-m="changepw">🔑 Change password</button>
-      <button data-m="approved">📚 Approved letters</button>
-      <hr>
+      <div class="grouplabel">App</div>
       <button data-m="print">🖨 Print letter</button>
       <button data-m="backup">💾 Backup &amp; restore</button>
       <button data-m="install">📲 Install app on phone</button>
-      <button data-m="clear">✕ New letter (clear)</button>
       <button data-m="logout">🚪 Sign out</button>
     </div>
   </div>
@@ -381,8 +398,8 @@
   <div class="btns"><button class="abtn ghost wide" style="grid-column:1/-1" data-close="tplPop">Close</button></div></div></div>
 
 <div class="sheetpop" id="regPop"><div class="card"><div class="grabber"></div>
-  <h3>Saved letters register</h3>
-  <p class="sub">Every letter you save is recorded here. Tap one to open it again.</p>
+  <h3>Drafts (this device)</h3>
+  <p class="sub">Kaam ke beech mein save kiya hua letter yahan milega — sirf isi phone/browser par. Official letter jo teeno se sign hona hai, uske liye "Awaiting signatures" dekhein.</p>
   <div id="regList"></div>
   <div class="btns"><button class="abtn ghost" id="regExport">Export register</button>
     <button class="abtn primary" data-close="regPop">Close</button></div></div></div>
@@ -445,7 +462,7 @@
   <div class="btns" style="margin-top:10px"><button class="abtn ghost wide" style="grid-column:1/-1" data-close="verifyPop">Close</button></div>
 </div></div>
 <div class="sheetpop" id="pendingPop"><div class="card"><div class="grabber"></div>
-  <h3>Pending approvals</h3>
+  <h3>Awaiting signatures</h3>
   <p class="sub">Yeh letters aapke (<span id="pendingRoleLabel"></span>) sign ka wait kar rahe hain.</p>
   <div id="pendingList"></div>
   <div class="btns" style="margin-top:10px"><button class="abtn ghost wide" style="grid-column:1/-1" data-close="pendingPop">Close</button></div>
@@ -465,7 +482,7 @@
   <div class="btns" style="margin-top:10px"><button class="abtn primary" id="rejectConfirm" style="background:#b3261e">Reject &amp; unlock</button><button class="abtn ghost" data-close="rejectPop">Cancel</button></div>
 </div></div>
 <div class="sheetpop" id="approvedPop"><div class="card"><div class="grabber"></div>
-  <h3>Approved letters</h3>
+  <h3>Signed &amp; approved</h3>
   <p class="sub">Yeh sab letters teeno se approve ho chuke hain — record ke liye yahan save hain.</p>
   <div id="approvedList"></div>
   <div class="btns" style="margin-top:10px"><button class="abtn ghost wide" style="grid-column:1/-1" data-close="approvedPop">Close</button></div>
@@ -3340,6 +3357,8 @@ try{
   function MHM_afterAuth(){
     if(!currentUser) return;
     toast("Hello, "+currentUser.name+" ("+MHM_ROLE_LABEL[currentUser.role]+")!");
+    $("#menuWhoName").textContent=currentUser.name+" \u00b7 "+MHM_ROLE_LABEL[currentUser.role];
+    if(typeof MHM_refreshPendingBadge==="function") MHM_refreshPendingBadge();
     MHM_fetchSignatureForRole(currentUser.role).then(function(sig){ settings.sig=sig||settings.sig; renderSig(); });
     MHM_refreshLockUI();
     MHM_fetchPwOverride(currentUser.role).then(function(pw){
@@ -3778,7 +3797,7 @@ try{
 
   /* ---------- menu ---------- */
   var menu=$("#menu");
-  $("#kebab").addEventListener("click",function(e){ e.stopPropagation(); menu.classList.toggle("show"); });
+  $("#kebab").addEventListener("click",function(e){ e.stopPropagation(); menu.classList.toggle("show"); if(typeof MHM_refreshPendingBadge==="function") MHM_refreshPendingBadge(); });
   document.addEventListener("click",function(){ menu.classList.remove("show"); });
   menu.addEventListener("click",function(e){
     var b=e.target.closest("button"); if(!b) return;
@@ -3797,7 +3816,8 @@ try{
     else if(m==="backup") $("#backupPop").classList.add("show");
     else if(m==="install") openInstall();
     else if(m==="clear") clearLetter();
-    else if(m==="logout"){ store.set("mhm_auth","0");
+    else if(m==="logout"){ store.set("mhm_auth","0"); store.set("mhm_auth_role","");
+      currentUser=null; $("#menuWhoName").textContent="—"; $("#pendingBadge").style.display="none";
       appEl.classList.remove("on"); loginEl.classList.remove("hide"); $("#pwd").value=""; }
   });
   function clearLetter(){
@@ -3921,7 +3941,7 @@ try{
       var bd=i>0?"border-left:1px solid #54a0c0;":"";
       return '<td style="width:33.33%;text-align:center;padding:0.2em 0.6em;vertical-align:top;'+bd+'">'
         +'<div style="font-weight:700;font-size:1.05em;color:#2a99db;line-height:1.25">'+c[1]+'</div>'
-        +'<div class="sigslot" data-sigslot="'+c[0]+'" style="min-height:1.7em;display:flex;align-items:center;justify-content:center;font-size:0.6em;color:#9aa9b1;font-style:italic;margin:0.15em 0">Pending signature</div>'
+        +'<div class="sigslot" data-sigslot="'+c[0]+'" style="min-height:2em;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;margin:0.2em 0 0.05em"><div style="width:68%;border-bottom:1.5px dashed #c3ccd6;height:1.15em"></div><div style="font-size:0.5em;color:#9aa9b1;letter-spacing:.04em;margin-top:0.2em">awaiting signature</div></div>'
         +'<div style="font-weight:700;font-size:0.82em;color:#333333">'+name+'</div>'
         +'</td>';
     }).join("");
@@ -4610,6 +4630,16 @@ try{
     $("#approvedPop").classList.remove("show");
     toast("Approved letter load ho gaya.");
   });
+
+  /* ===== Pending-count badge (added) ===== */
+  function MHM_refreshPendingBadge(){
+    if(!currentUser) return;
+    MHM_listPendingForRole(currentUser.role).then(function(list){
+      var b=$("#pendingBadge"); if(!b) return;
+      if(list.length>0){ b.textContent=String(list.length); b.style.display="inline-block"; }
+      else { b.style.display="none"; }
+    });
+  }
 
   setMargin("normal"); setAlign("left"); applyFs(); renderSig(); loadBearers();
 })();
