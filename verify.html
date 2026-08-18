@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Verify Document — Max Heights Majestic RWS</title>
+<style>
+  :root{--ink:#15303c;--accent:#2c6f90;--muted:#6a7a83;--line:#dbe2e7;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;background:#eef1f3;color:var(--ink);
+       min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{background:#fff;border-radius:18px;box-shadow:0 12px 40px rgba(21,48,60,.15);max-width:420px;width:100%;padding:28px 24px;text-align:center}
+  h1{font-size:11px;margin:0 0 4px;color:var(--muted);font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+  .org{font-size:19px;font-weight:800;margin:0 0 20px}
+  .result{border-radius:14px;padding:20px 16px;margin:16px 0;text-align:left}
+  .result.valid{background:#eefaf1;border:1.5px solid #b7e0c2}
+  .result.invalid{background:#fdefee;border:1.5px solid #f0b8b3}
+  .icon{font-size:34px;margin-bottom:6px;text-align:center}
+  .status{font-size:16px;font-weight:800;margin-bottom:10px;text-align:center}
+  .valid .status{color:#1e7e34}
+  .invalid .status{color:#b3261e}
+  .invalid .msg{font-size:13px;color:var(--ink);text-align:center}
+  .row{display:flex;justify-content:space-between;font-size:12.5px;padding:6px 0;border-top:1px solid rgba(0,0,0,.07)}
+  .row:first-of-type{border-top:none}
+  .row span{color:var(--muted)}
+  .row b{color:var(--ink);font-family:monospace}
+  .manual{margin-top:18px;text-align:left}
+  .manual input{width:100%;height:42px;border:1.5px solid var(--line);border-radius:9px;padding:0 12px;
+    font-size:13.5px;margin-bottom:8px;box-sizing:border-box;font-family:monospace;text-transform:uppercase}
+  .manual button{width:100%;height:44px;border:none;border-radius:10px;background:var(--accent);color:#fff;
+    font-weight:700;font-size:14px;cursor:pointer}
+  .foot{margin-top:18px;font-size:10.5px;color:var(--muted);line-height:1.5}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Document Verification</h1>
+  <div class="org">Max Heights Majestic RWS</div>
+  <div id="out"></div>
+  <div class="manual">
+    <input id="mDoc" placeholder="Document ID — e.g. MHM-2026-0807-XXXX-YY" autocapitalize="none" autocomplete="off">
+    <input id="mCode" placeholder="Code — 8 characters" autocapitalize="none" autocomplete="off">
+    <button id="mBtn" type="button">Check</button>
+  </div>
+  <div class="foot">Registered Co-operative Society · COOP/2026/JAIPUR/502531<br>
+  This page checks a document's authenticity using only the ID/Code on the letter itself — no personal data is sent or stored.</div>
+</div>
+<script>
+var SALT="MHM-RWS-JAIPUR-502531";
+function fnv1a(s){var h=0x811c9dc5;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h+((h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24)))>>>0;}return h>>>0;}
+function b36(n,len){var s=(n>>>0).toString(36).toUpperCase();while(s.length<len)s="0"+s;return s.slice(-len);}
+function checkDigits(s){return b36(fnv1a(s)%1296,2);}
+function verify(docidRaw,codeRaw){
+  var docid=(docidRaw||"").trim().toUpperCase();
+  var code=(codeRaw||"").trim().toUpperCase();
+  var m=/^MHM-(\d{4})-(\d{2})(\d{2})-([0-9A-Z]{4})-([0-9A-Z]{2})$/.exec(docid);
+  if(!m) return {valid:false,reason:"format",docid:docid};
+  var yyyy=m[1],mm=m[2],dd=m[3],rrrr=m[4],cd=m[5];
+  var mmN=parseInt(mm,10),ddN=parseInt(dd,10);
+  if(mmN<1||mmN>12||ddN<1||ddN>31) return {valid:false,reason:"date",docid:docid};
+  var core="MHM-"+yyyy+"-"+mm+dd+"-"+rrrr;
+  if(checkDigits(core)!==cd) return {valid:false,reason:"checksum",docid:docid};
+  var iso=yyyy+"-"+mm+"-"+dd;
+  var hash=b36(fnv1a(docid+"|"+iso+"|"+SALT),8);
+  if(!code) return {valid:false,reason:"nocode",docid:docid,iso:iso,hash:hash};
+  if(hash!==code) return {valid:false,reason:"codemismatch",docid:docid,iso:iso,hash:hash};
+  return {valid:true,docid:docid,iso:iso,hash:hash};
+}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function render(r){
+  var out=document.getElementById("out");
+  if(r.valid){
+    out.innerHTML='<div class="result valid"><div class="icon">\u2713</div><div class="status">Verified Authentic</div>'
+      +'<div class="row"><span>Document ID</span><b>'+esc(r.docid)+'</b></div>'
+      +'<div class="row"><span>Issued</span><b>'+esc(r.iso)+'</b></div>'
+      +'<div class="row"><span>Issuer</span><b style="font-family:inherit">Max Heights Majestic RWS</b></div></div>';
+  } else {
+    var msg={format:"Document ID ka format sahi nahi hai.",date:"Document ID ke andar ki date valid nahi hai.",
+      checksum:"Yeh Document ID hamare system se match nahi karta.",
+      nocode:"Format sahi hai — poora confirm karne ke liye Code bhi daalein.",
+      codemismatch:"Document ID aur Code aapas mein match nahi karte."}[r.reason]||"Verify nahi ho saka.";
+    out.innerHTML='<div class="result invalid"><div class="icon">\u2717</div><div class="status">Not Verified</div>'
+      +'<div class="msg">'+esc(msg)+'</div></div>';
+  }
+}
+function runFromQuery(){
+  try{
+    var params=new URLSearchParams(window.location.search);
+    var doc=params.get("doc"), code=params.get("code");
+    if(doc) document.getElementById("mDoc").value=doc;
+    if(code) document.getElementById("mCode").value=code;
+    if(doc||code) render(verify(doc,code));
+  }catch(e){}
+}
+document.getElementById("mBtn").addEventListener("click",function(){
+  render(verify(document.getElementById("mDoc").value, document.getElementById("mCode").value));
+});
+runFromQuery();
+</script>
+</body>
+</html>

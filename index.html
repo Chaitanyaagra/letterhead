@@ -16,7 +16,37 @@
 <link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-152.png">
 <link rel="apple-touch-icon" sizes="120x120" href="apple-touch-icon-120.png">
 <link rel="apple-touch-icon" href="apple-touch-icon-180.png">
-<script>if('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js',{scope:'./'}).catch(function(){});</script>
+<script>
+if('serviceWorker' in navigator && location.protocol !== 'file:'){
+  navigator.serviceWorker.register('sw.js',{scope:'./'}).then(function(reg){
+    reg.addEventListener('updatefound', function(){
+      var nw = reg.installing;
+      if(!nw) return;
+      nw.addEventListener('statechange', function(){
+        if(nw.state==='installed' && navigator.serviceWorker.controller){
+          var el=document.createElement('div');
+          el.style.cssText='position:fixed;left:12px;right:12px;bottom:12px;z-index:999;background:#15303c;color:#fff;'
+            +'border-radius:12px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.3);display:flex;align-items:center;'
+            +'justify-content:space-between;gap:10px;font:600 13px system-ui,Arial,sans-serif';
+          el.innerHTML='<span>New version available</span>'
+            +'<button style="background:#2c6f90;color:#fff;border:none;border-radius:8px;padding:8px 14px;'
+            +'font-weight:700;font-size:13px;cursor:pointer">Update Now</button>';
+          el.querySelector('button').addEventListener('click',function(){
+            if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+          });
+          document.body.appendChild(el);
+        }
+      });
+    });
+  }).catch(function(){});
+  var mhmSwRefreshed=false;
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if(mhmSwRefreshed) return;
+    mhmSwRefreshed=true;
+    window.location.reload();
+  });
+}
+</script>
 <style>
 /* ===== Embedded fonts (offline, identical on every phone) ===== */
 @font-face{font-family:"MHM Sans";font-style:normal;font-weight:400;font-display:swap;
@@ -111,7 +141,14 @@
   .tbtn{flex:0 0 auto;min-width:34px;height:34px;padding:0 9px;border:1px solid var(--line);background:#fff;
     color:var(--ink);border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;display:inline-flex;
     align-items:center;justify-content:center;gap:4px;white-space:nowrap;}
-  .tbtn:active{background:#eef4f7;}
+  .tbtn:active{background:#eef4f7;transform:scale(.94);}
+  .abtn:active,.tbtn:active{transition:transform .1s ease;}
+  .abtn:active{transform:scale(.97);}
+  @media(hover:hover){
+    .tbtn:hover{background:#eef4f7;}
+    .abtn.primary:hover{background:var(--accent-dark);}
+    .abtn.ghost:hover{background:#e2e8f5;}
+  }
   .tbtn.on{background:var(--accent);border-color:var(--accent);color:#fff;}
   .tbtn small{font-size:10px;font-weight:700;}
   .tbtn.lang{font-weight:700;color:var(--accent-dark);border-color:#bcd6e2;background:#f2f8fb;}
@@ -174,7 +211,8 @@
   }
   .sheetpop h3{margin:2px 0 4px;font-size:15.5px;}
   .sheetpop .sub{margin:0 0 12px;font-size:12.5px;color:var(--muted);line-height:1.55;}
-  .sheetpop .btns{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px;}
+  .sheetpop .btns{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px;
+    position:sticky;bottom:0;background:#fff;padding-top:9px;border-top:1px solid var(--line);}
   .steps{background:#f4f8fa;border:1px solid #e0eaef;border-radius:11px;padding:10px 12px;font-size:12.5px;
     line-height:1.7;margin:0 0 12px;}
   .steps b{color:var(--accent-dark);}
@@ -270,9 +308,34 @@
     <button id="loginBtn">Sign In</button>
     <p id="loginErr"></p>
     <p class="login-foot">Authorised office bearers only.<br>Reg. No. COOP/2026/JAIPUR/502531</p>
+    <button type="button" id="showSignup" style="background:none;border:none;color:var(--accent);font-size:12.5px;font-weight:700;margin-top:12px;cursor:pointer;text-decoration:underline;display:block;width:100%;text-align:center">New user? Create an account</button>
   </div>
 </div>
 
+<div class="sheetpop" id="signupPop"><div class="card"><div class="grabber"></div>
+  <h3>Create account</h3>
+  <p class="sub">Apna naam, user ID aur password chunein. Secretary ke approve karne ke baad hi aap login kar payenge.</p>
+  <input id="suName" placeholder="Full name" style="width:100%;height:42px;border:1.5px solid var(--line);border-radius:9px;padding:0 12px;font-size:14px;background:#fff;outline:none;color:var(--ink);margin-bottom:8px;box-sizing:border-box">
+  <input id="suUser" placeholder="Choose a user ID" autocapitalize="none" style="width:100%;height:42px;border:1.5px solid var(--line);border-radius:9px;padding:0 12px;font-size:14px;background:#fff;outline:none;color:var(--ink);margin-bottom:8px;box-sizing:border-box">
+  <input id="suPwd1" type="password" placeholder="Choose a password" style="width:100%;height:42px;border:1.5px solid var(--line);border-radius:9px;padding:0 12px;font-size:14px;background:#fff;outline:none;color:var(--ink);margin-bottom:8px;box-sizing:border-box">
+  <input id="suPwd2" type="password" placeholder="Confirm password" style="width:100%;height:42px;border:1.5px solid var(--line);border-radius:9px;padding:0 12px;font-size:14px;background:#fff;outline:none;color:var(--ink);margin-bottom:6px;box-sizing:border-box">
+  <p id="signupErr" style="display:none;color:#b3261e;font-size:12px;margin:2px 0 8px"></p>
+  <button class="abtn primary" id="signupSubmit" style="width:100%">Send request</button>
+  <div class="btns" style="margin-top:10px"><button class="abtn ghost wide" style="grid-column:1/-1" data-close="signupPop">Cancel</button></div>
+</div></div>
+<div class="sheetpop" id="userReqPop"><div class="card"><div class="grabber"></div>
+  <h3>User requests</h3>
+  <p class="sub">Naye account ke liye pending requests. Approve karte hi wo turant login kar sakenge.</p>
+  <div id="userReqList"></div>
+  <div class="grouplabel" style="padding-left:0">Approved users</div>
+  <div id="approvedUsersList"></div>
+  <div class="btns" style="margin-top:10px"><button class="abtn ghost wide" style="grid-column:1/-1" data-close="userReqPop">Close</button></div>
+</div></div>
+<div class="sheetpop" id="helpPop"><div class="card"><div class="grabber"></div>
+  <h3>Help &amp; guide</h3>
+  <div id="helpBody" style="font-size:13.5px;line-height:1.7;color:var(--ink)"></div>
+  <div class="btns" style="margin-top:10px"><button class="abtn primary wide" style="grid-column:1/-1" data-close="helpPop">Got it</button></div>
+</div></div>
 <div id="app">
   <div class="topbar">
     <div class="tt"><h1>Letter Maker</h1><p>Max Heights Majestic Resident Welfare Society</p></div>
@@ -295,7 +358,9 @@
       <button data-m="sig">✍ Signature &amp; stamp</button>
       <button data-m="verify">🔍 Verify document</button>
       <button data-m="changepw">🔑 Change password</button>
+      <button data-m="userreq" id="menuUserReqBtn" style="display:none">👤 User requests<span class="pbadge" id="userReqBadge" style="display:none">0</span></button>
       <div class="grouplabel">App</div>
+      <button data-m="help">❓ Help &amp; guide</button>
       <button data-m="print">🖨 Print letter</button>
       <button data-m="backup">💾 Backup &amp; restore</button>
       <button data-m="install">📲 Install app on phone</button>
@@ -346,7 +411,7 @@
     </div>
   </div>
 
-  <div class="pagebar" id="pagebar"><span>Fits in <b>1 page</b></span></div>
+  <div class="pagebar" id="pagebar" style="position:relative"><span>Fits in <b>1 page</b></span><span id="saveIndicator" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-weight:700;font-size:11px;opacity:0;transition:opacity .25s ease"></span></div>
   <div id="lockBanner" style="display:none;background:#fdefee;border:1px solid #f0b8b3;border-radius:10px;padding:8px 12px;margin:10px 0 0;font-size:12.5px;color:#b3261e;text-align:center">Locked — pending approval from all three office bearers</div>
   <button class="abtn primary" id="btnApprove" style="display:none;width:100%;margin-top:8px;background:#1e7e34">Sign &amp; Approve as <span id="approveRoleLabel"></span></button>
   <button class="abtn ghost" id="btnReject" style="display:none;width:100%;margin-top:6px;color:#b3261e;border-color:#f0b8b3">Reject this letter</button>
@@ -3266,7 +3331,8 @@ function MHM_buildStampUnit(sealSrc, size){
     var v = MHM_verify(docid);
     var qrHtml = "";
     try{
-      var qr = qrcode(0,'M'); qr.addData(v.str); qr.make();
+      var qrUrl = MHM_VERIFY_BASE_URL+"?doc="+encodeURIComponent(docid)+"&code="+v.hash;
+      var qr = qrcode(0,'M'); qr.addData(qrUrl); qr.make();
       var qrUri = qr.createDataURL(4,0);
       var qs = (size*0.66).toFixed(2);
       qrHtml = '<img src="'+qrUri+'" style="width:'+qs+'em;height:'+qs+'em;display:block;margin:0 auto;image-rendering:pixelated">';
@@ -3279,7 +3345,7 @@ function MHM_buildStampUnit(sealSrc, size){
       + qrHtml
       + '<span style="display:block;margin-top:1px;font-family:monospace;font-size:'+fs+'em;color:#16264f;letter-spacing:.2px">'+docid+'</span>'
       + '<span style="display:block;font-family:monospace;font-size:'+fs2+'em;color:#5c6785">Code '+v.hash+'</span>'
-      + '<span style="display:block;font-family:monospace;font-size:'+fs2+'em;color:#5c6785">Verify via Menu \u25b8 Verify document</span>'
+      + '<span style="display:block;font-family:monospace;font-size:'+fs2+'em;color:#5c6785">Scan QR, or Menu \u25b8 Verify document</span>'
       + '</span></span>';
   }catch(e){
     return '<img src="'+sealSrc+'" style="height:'+(size||3.6)+'em">';
@@ -3306,11 +3372,18 @@ var FIREBASE_CONFIG = {
   messagingSenderId: "598065992006",
   appId: "1:598065992006:web:dc3184c26a4c3cee9c1547"
 };
+/* Public URL this app is hosted at — update if you ever move to a custom domain. */
+var MHM_VERIFY_BASE_URL = "https://mhm-letterhead.web.app/verify.html";
 var mhmDb = null;
 try{
   if(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf("PASTE_")!==0 && typeof firebase!=="undefined"){
     firebase.initializeApp(FIREBASE_CONFIG);
     mhmDb = firebase.firestore();
+    try{
+      mhmDb.enablePersistence({synchronizeTabs:true}).catch(function(err){
+        console.warn("Offline persistence not enabled:", err && err.code);
+      });
+    }catch(e){}
     firebase.auth().signInAnonymously().catch(function(e){ console.warn("Firebase anonymous sign-in failed", e); });
   }
 }catch(e){ console.warn("Firebase init failed", e); }
@@ -3356,9 +3429,12 @@ try{
   var loginEl=$("#login"), appEl=$("#app");
   function MHM_afterAuth(){
     if(!currentUser) return;
-    toast("Hello, "+currentUser.name+" ("+MHM_ROLE_LABEL[currentUser.role]+")!");
-    $("#menuWhoName").textContent=currentUser.name+" \u00b7 "+MHM_ROLE_LABEL[currentUser.role];
+    var roleLabel=MHM_ROLE_LABEL[currentUser.role]||"Member";
+    toast("Hello, "+currentUser.name+" ("+roleLabel+")!");
+    $("#menuWhoName").textContent=currentUser.name+" \u00b7 "+roleLabel;
+    if(typeof MHM_applyRoleUI==="function") MHM_applyRoleUI();
     if(typeof MHM_refreshPendingBadge==="function") MHM_refreshPendingBadge();
+    if(typeof MHM_refreshUserReqBadge==="function") MHM_refreshUserReqBadge();
     MHM_fetchSignatureForRole(currentUser.role).then(function(sig){ settings.sig=sig||settings.sig; renderSig(); });
     MHM_refreshLockUI();
     MHM_fetchPwOverride(currentUser.role).then(function(pw){
@@ -3382,15 +3458,50 @@ try{
       currentUser={role:match.role, name:match.name};
       if($("#remember").checked) store.set("mhm_auth_role",match.role);
       e.classList.remove("show"); openApp();
+      return;
     }
-    else{ e.textContent="Incorrect User ID or Password. Please try again."; e.classList.add("show"); $("#pwd").value=""; }
+    MHM_checkGeneralLogin(u,p).then(function(gu){
+      if(gu){
+        currentUser={role:"general_"+gu.username, name:gu.displayName, username:gu.username};
+        if($("#remember").checked) store.set("mhm_auth_role","general_"+gu.username);
+        e.classList.remove("show"); openApp();
+      } else {
+        e.textContent="Incorrect User ID or Password. Please try again."; e.classList.add("show"); $("#pwd").value="";
+      }
+    });
   }
   $("#loginBtn").addEventListener("click",tryLogin);
   ["#uid","#pwd"].forEach(function(s){ $(s).addEventListener("keydown",function(ev){
     if(ev.key==="Enter"){ ev.preventDefault(); tryLogin(); } }); });
   store.get("mhm_auth_role").then(function(role){
     if(!role) return;
-    for(var i=0;i<MHM_USERS.length;i++){ if(MHM_USERS[i].role===role){ currentUser={role:MHM_USERS[i].role,name:MHM_USERS[i].name}; openApp(); break; } }
+    for(var i=0;i<MHM_USERS.length;i++){ if(MHM_USERS[i].role===role){ currentUser={role:MHM_USERS[i].role,name:MHM_USERS[i].name}; openApp(); return; } }
+    if(role.indexOf("general_")===0){
+      var uname=role.slice("general_".length);
+      MHM_checkGeneralUserExists(uname).then(function(gu){
+        if(gu){ currentUser={role:"general_"+uname, name:gu.displayName, username:uname}; openApp(); }
+        else { store.set("mhm_auth_role",""); }
+      });
+    }
+  });
+  $("#showSignup").addEventListener("click",function(){
+    $("#suName").value=""; $("#suUser").value=""; $("#suPwd1").value=""; $("#suPwd2").value="";
+    $("#signupErr").style.display="none";
+    $("#signupPop").classList.add("show");
+  });
+  $("#signupSubmit").addEventListener("click",function(){
+    var name=$("#suName").value.trim(), uname=$("#suUser").value.trim(), p1=$("#suPwd1").value, p2=$("#suPwd2").value;
+    var err=$("#signupErr");
+    if(!name||!uname||!p1){ err.textContent="Sabhi fields bharein."; err.style.display="block"; return; }
+    if(p1.length<4){ err.textContent="Password kam se kam 4 characters ka hona chahiye."; err.style.display="block"; return; }
+    if(p1!==p2){ err.textContent="Dono password match nahi karte."; err.style.display="block"; return; }
+    MHM_submitSignupRequest(name,uname,p1).then(function(r){
+      if(r.ok){ $("#signupPop").classList.remove("show"); toast("Request bhej di gayi \u2014 Secretary ke approve karne ka wait karein."); }
+      else if(r.reason==="taken"){ err.textContent="Yeh user ID pehle se li ja chuki hai."; err.style.display="block"; }
+      else if(r.reason==="pending-exists"){ err.textContent="Is user ID ke liye request pehle se pending hai."; err.style.display="block"; }
+      else if(r.reason==="no-firebase"){ err.textContent="Firebase set up nahi hai \u2014 signup abhi possible nahi."; err.style.display="block"; }
+      else { err.textContent="Request bhejne mein dikkat hui."; err.style.display="block"; }
+    });
   });
 
   /* ---------- install ---------- */
@@ -3481,9 +3592,13 @@ try{
 
   /* ---------- draft & settings ---------- */
   var saveTimer=null;
-  function saveDraft(){ clearTimeout(saveTimer); saveTimer=setTimeout(function(){
+  function saveDraft(){ clearTimeout(saveTimer); if(typeof MHM_showSaveState==="function") MHM_showSaveState("saving");
+    saveTimer=setTimeout(function(){
     store.set("mhm_letter_draft",JSON.stringify({ln:letterNo.innerHTML,dt:dateVal.innerHTML,
-      bd:body.innerHTML,fs:fs,align:align,mg:mgKey,serif:sheet.classList.contains("serif")}));},600); }
+      bd:body.innerHTML,fs:fs,align:align,mg:mgKey,serif:sheet.classList.contains("serif")}))
+      .then(function(){ if(typeof MHM_showSaveState==="function") MHM_showSaveState("saved"); })
+      .catch(function(){ if(typeof MHM_showSaveState==="function") MHM_showSaveState("error"); });
+    },600); }
   function loadDraft(){
     store.get("mhm_letter_draft").then(function(v){
       if(v){ try{ var d=JSON.parse(v);
@@ -3811,6 +3926,8 @@ try{
     else if(m==="verify"){ $("#vResult").innerHTML=""; $("#vDocId").value=""; $("#vCode").value=""; $("#verifyPop").classList.add("show"); }
     else if(m==="pending"){ MHM_openPendingPop(); }
     else if(m==="changepw"){ $("#newPw1").value=""; $("#newPw2").value=""; $("#changePwErr").style.display="none"; $("#changePwPop").classList.add("show"); }
+    else if(m==="userreq"){ MHM_openUserReqPop(); }
+    else if(m==="help"){ MHM_openHelpPop(); }
     else if(m==="approved"){ MHM_openApprovedPop(); }
     else if(m==="print") printLetter();
     else if(m==="backup") $("#backupPop").classList.add("show");
@@ -4241,7 +4358,18 @@ try{
   /* ---------- WhatsApp bulk ---------- */
   function plainLetter(html){
     var d=document.createElement("div"); d.innerHTML=html;
-    return (d.innerText||"").replace(/\n{3,}/g,"\n\n").trim();
+    function walk(node){
+      if(node.nodeType===3) return node.textContent;
+      if(node.nodeType!==1) return "";
+      var tag=node.tagName.toLowerCase(), inner="";
+      for(var i=0;i<node.childNodes.length;i++) inner+=walk(node.childNodes[i]);
+      if(tag==="b"||tag==="strong") return inner.trim()?"*"+inner+"*":inner;
+      if(tag==="i"||tag==="em") return inner.trim()?"_"+inner+"_":inner;
+      if(tag==="br") return "\n";
+      if(tag==="p"||tag==="div") return inner+"\n";
+      return inner;
+    }
+    return walk(d).replace(/\n{3,}/g,"\n\n").trim();
   }
   function openWa(){
     var list=parseList().filter(function(r){ return r.phone; });
@@ -4366,7 +4494,7 @@ try{
       banner.style.display="block";
       var myRole=currentUser?currentUser.role:null;
       var already=myRole&&currentLetterApprovals&&currentLetterApprovals[myRole]&&currentLetterApprovals[myRole].approved;
-      if(myRole&&!already){
+      if(myRole&&MHM_isOfficer(myRole)&&!already){
         abtn.style.display="block"; $("#approveRoleLabel").textContent=MHM_ROLE_LABEL[myRole];
         if(rbtn) rbtn.style.display="block";
       } else {
@@ -4414,11 +4542,12 @@ try{
   var MHM_pendingCache=[];
   function MHM_openPendingPop(){
     var role=currentUser?currentUser.role:null;
-    $("#pendingRoleLabel").textContent=role?MHM_ROLE_LABEL[role]:"—";
+    $("#pendingRoleLabel").textContent=role?(MHM_ROLE_LABEL[role]||currentUser.name):"—";
     $("#pendingList").innerHTML='<p style="color:var(--muted);font-size:12.5px">Loading…</p>';
     $("#pendingPop").classList.add("show");
     if(!role) return;
-    MHM_listPendingForRole(role).then(function(list){
+    var src0=MHM_isOfficer(role)?MHM_listPendingForRole(role):MHM_listMyPendingLetters();
+    src0.then(function(list){
       MHM_pendingCache=list;
       if(!list.length){ $("#pendingList").innerHTML='<p style="color:var(--muted);font-size:12.5px">Koi pending letter nahi hai.</p>'; return; }
       $("#pendingList").innerHTML=list.map(function(item,i){
@@ -4610,7 +4739,8 @@ try{
   function MHM_openApprovedPop(){
     $("#approvedList").innerHTML='<p style="color:var(--muted);font-size:12.5px">Loading…</p>';
     $("#approvedPop").classList.add("show");
-    MHM_listApprovedLetters().then(function(list){
+    var src1=(currentUser&&MHM_isOfficer(currentUser.role))?MHM_listApprovedLetters():MHM_listMyApprovedLetters();
+    src1.then(function(list){
       MHM_approvedCache=list;
       if(!list.length){ $("#approvedList").innerHTML='<p style="color:var(--muted);font-size:12.5px">Abhi koi approved letter nahi hai.</p>'; return; }
       $("#approvedList").innerHTML=list.map(function(item,i){
@@ -4634,11 +4764,253 @@ try{
   /* ===== Pending-count badge (added) ===== */
   function MHM_refreshPendingBadge(){
     if(!currentUser) return;
-    MHM_listPendingForRole(currentUser.role).then(function(list){
+    var srcB=MHM_isOfficer(currentUser.role)?MHM_listPendingForRole(currentUser.role):MHM_listMyPendingLetters();
+    srcB.then(function(list){
       var b=$("#pendingBadge"); if(!b) return;
       if(list.length>0){ b.textContent=String(list.length); b.style.display="inline-block"; }
       else { b.style.display="none"; }
     });
+  }
+
+  /* ===== Self-service registration + isolation (added) ===== */
+  function MHM_isOfficer(role){ return MHM_ROLES.indexOf(role)>=0; }
+  function MHM_sanitizeUsername(u){ return (u||"").trim().toLowerCase().replace(/[^a-z0-9._-]/g,""); }
+
+  function MHM_submitSignupRequest(name, usernameRaw, password){
+    if(!mhmDb) return Promise.resolve({ok:false, reason:"no-firebase"});
+    var uname=MHM_sanitizeUsername(usernameRaw);
+    if(!uname||!name||!password) return Promise.resolve({ok:false, reason:"missing"});
+    var isFixed=MHM_USERS.some(function(u){ return MHM_sanitizeUsername(u.u)===uname; });
+    if(isFixed) return Promise.resolve({ok:false, reason:"taken"});
+    return mhmDb.collection("mhm_general_users").doc(uname).get().then(function(existing){
+      if(existing.exists) return {ok:false, reason:"taken"};
+      return mhmDb.collection("mhm_user_requests").doc(uname).get().then(function(reqDoc){
+        if(reqDoc.exists && reqDoc.data().status==="pending") return {ok:false, reason:"pending-exists"};
+        return mhmDb.collection("mhm_user_requests").doc(uname).set({
+          username:uname, displayName:name, password:password,
+          status:"pending", requestedAt:Date.now()
+        }).then(function(){ return {ok:true}; });
+      });
+    }).catch(function(e){ return {ok:false, reason:"error", error:e}; });
+  }
+
+  function MHM_checkGeneralLogin(usernameRaw, password){
+    if(!mhmDb) return Promise.resolve(null);
+    var uname=MHM_sanitizeUsername(usernameRaw);
+    if(!uname) return Promise.resolve(null);
+    return mhmDb.collection("mhm_general_users").doc(uname).get().then(function(doc){
+      if(!doc.exists || doc.data().revoked) return null;
+      return mhmDb.collection("mhm_auth").doc("general_"+uname).get().then(function(ov){
+        var effectivePw=(ov.exists && ov.data().password) ? ov.data().password : doc.data().password;
+        return (effectivePw===password) ? {username:uname, displayName:doc.data().displayName} : null;
+      });
+    }).catch(function(){ return null; });
+  }
+  function MHM_checkGeneralUserExists(uname){
+    if(!mhmDb) return Promise.resolve(null);
+    return mhmDb.collection("mhm_general_users").doc(uname).get().then(function(doc){
+      return (doc.exists && !doc.data().revoked) ? {username:uname, displayName:doc.data().displayName} : null;
+    }).catch(function(){ return null; });
+  }
+
+  function MHM_listUserRequests(){
+    if(!mhmDb) return Promise.resolve([]);
+    return mhmDb.collection("mhm_user_requests").where("status","==","pending").get().then(function(snap){
+      var out=[]; snap.forEach(function(doc){ out.push(Object.assign({id:doc.id}, doc.data())); });
+      out.sort(function(a,b){ return (a.requestedAt||0)-(b.requestedAt||0); });
+      return out;
+    }).catch(function(){ return []; });
+  }
+  function MHM_approveUserRequest(username){
+    var ref=mhmDb.collection("mhm_user_requests").doc(username);
+    return ref.get().then(function(doc){
+      if(!doc.exists) return {ok:false};
+      var d=doc.data();
+      return mhmDb.collection("mhm_general_users").doc(username).set({
+        password:d.password, displayName:d.displayName, approvedAt:Date.now(),
+        approvedByRole:currentUser?currentUser.role:"", approvedByName:currentUser?currentUser.name:""
+      }).then(function(){ return ref.set({status:"approved"},{merge:true}); }).then(function(){ return {ok:true}; });
+    }).catch(function(e){ return {ok:false, error:e}; });
+  }
+  function MHM_rejectUserRequest(username){
+    return mhmDb.collection("mhm_user_requests").doc(username).set({status:"rejected"},{merge:true})
+      .then(function(){ return {ok:true}; }).catch(function(e){ return {ok:false, error:e}; });
+  }
+
+  var MHM_userReqCache=[];
+  function MHM_openUserReqPop(){
+    $("#userReqList").innerHTML='<p style="color:var(--muted);font-size:12.5px">Loading…</p>';
+    $("#approvedUsersList").innerHTML='<p style="color:var(--muted);font-size:12.5px">Loading…</p>';
+    $("#userReqPop").classList.add("show");
+    MHM_renderApprovedUsersList();
+    MHM_listUserRequests().then(function(list){
+      MHM_userReqCache=list;
+      if(!list.length){ $("#userReqList").innerHTML='<p style="color:var(--muted);font-size:12.5px">Koi pending request nahi hai.</p>'; return; }
+      $("#userReqList").innerHTML=list.map(function(item,i){
+        return '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#fbfcfd">'
+          +'<div style="font-weight:700;font-size:13.5px;color:var(--ink)">'+esc(item.displayName||"—")+'</div>'
+          +'<div style="font-size:11.5px;color:var(--muted);margin-top:2px;font-family:monospace">'+esc(item.username||"")+'</div>'
+          +'<div style="display:flex;gap:8px;margin-top:8px">'
+          +'<button data-approve-req="'+i+'" style="flex:1;height:36px;border:none;border-radius:8px;background:#1e7e34;color:#fff;font-weight:700;font-size:12.5px">Approve</button>'
+          +'<button data-reject-req="'+i+'" style="flex:1;height:36px;border:1px solid #f0b8b3;border-radius:8px;background:#fff;color:#b3261e;font-weight:700;font-size:12.5px">Reject</button>'
+          +'</div></div>';
+      }).join("");
+    });
+  }
+  $("#userReqList").addEventListener("click",function(e){
+    var ab=e.target.closest("[data-approve-req]"), rb=e.target.closest("[data-reject-req]");
+    if(ab){
+      var item=MHM_userReqCache[parseInt(ab.dataset.approveReq,10)]; if(!item) return;
+      MHM_approveUserRequest(item.username).then(function(r){
+        toast(r.ok?(item.displayName+" ko approve kar diya.") : "Approve nahi ho paya.");
+        if(typeof MHM_refreshUserReqBadge==="function") MHM_refreshUserReqBadge();
+        MHM_openUserReqPop();
+      });
+    } else if(rb){
+      var item2=MHM_userReqCache[parseInt(rb.dataset.rejectReq,10)]; if(!item2) return;
+      MHM_rejectUserRequest(item2.username).then(function(r){
+        toast(r.ok?(item2.displayName+" ki request reject kar di.") : "Reject nahi ho paya.");
+        if(typeof MHM_refreshUserReqBadge==="function") MHM_refreshUserReqBadge();
+        MHM_openUserReqPop();
+      });
+    }
+  });
+  function MHM_refreshUserReqBadge(){
+    if(!currentUser || currentUser.role!=="secretary") return;
+    MHM_listUserRequests().then(function(list){
+      var b=$("#userReqBadge"); if(!b) return;
+      if(list.length>0){ b.textContent=String(list.length); b.style.display="inline-block"; }
+      else { b.style.display="none"; }
+    });
+  }
+
+  function MHM_listMyPendingLetters(){
+    if(!mhmDb||!currentUser) return Promise.resolve([]);
+    return mhmDb.collection("mhm_letters").where("createdByRole","==",currentUser.role).get().then(function(snap){
+      var out=[];
+      snap.forEach(function(doc){
+        var d=doc.data();
+        if(d.locked && !MHM_isFullyApproved(d.approvals)) out.push({id:doc.id, content:d.content, meta:d.meta, createdByName:d.createdByName, approvals:d.approvals});
+      });
+      return out;
+    }).catch(function(){ return []; });
+  }
+  function MHM_listMyApprovedLetters(){
+    if(!mhmDb||!currentUser) return Promise.resolve([]);
+    return mhmDb.collection("mhm_letters").where("createdByRole","==",currentUser.role).get().then(function(snap){
+      var out=[];
+      snap.forEach(function(doc){
+        var d=doc.data();
+        if(d.locked && MHM_isFullyApproved(d.approvals)) out.push({id:doc.id, content:d.content, meta:d.meta, createdByName:d.createdByName, createdAt:d.createdAt||0});
+      });
+      out.sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
+      return out;
+    }).catch(function(){ return []; });
+  }
+
+  function MHM_applyRoleUI(){
+    if(!currentUser) return;
+    var officer=MHM_isOfficer(currentUser.role);
+    var sigBtn=document.querySelector('[data-m="sig"]');
+    if(sigBtn) sigBtn.style.display=officer?"":"none";
+    var ureqBtn=$("#menuUserReqBtn");
+    if(ureqBtn) ureqBtn.style.display=(currentUser.role==="secretary")?"":"none";
+  }
+
+  /* ===== Manage approved general users (added) ===== */
+  function MHM_listGeneralUsers(){
+    if(!mhmDb) return Promise.resolve([]);
+    return mhmDb.collection("mhm_general_users").get().then(function(snap){
+      var out=[];
+      snap.forEach(function(doc){ out.push(Object.assign({username:doc.id}, doc.data())); });
+      out.sort(function(a,b){ return (a.displayName||"").localeCompare(b.displayName||""); });
+      return out;
+    }).catch(function(){ return []; });
+  }
+  function MHM_setUserRevoked(username, revoked){
+    if(!mhmDb) return Promise.resolve({ok:false});
+    return mhmDb.collection("mhm_general_users").doc(username).set({revoked:revoked},{merge:true})
+      .then(function(){ return {ok:true}; }).catch(function(e){ return {ok:false, error:e}; });
+  }
+  var MHM_approvedUsersCache=[];
+  function MHM_renderApprovedUsersList(){
+    MHM_listGeneralUsers().then(function(list){
+      MHM_approvedUsersCache=list;
+      if(!list.length){ $("#approvedUsersList").innerHTML='<p style="color:var(--muted);font-size:12.5px">Koi approved user nahi hai.</p>'; return; }
+      $("#approvedUsersList").innerHTML=list.map(function(item,i){
+        var revoked=!!item.revoked;
+        return '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#fbfcfd'+(revoked?";opacity:.6":"")+'">'
+          +'<div style="font-weight:700;font-size:13.5px;color:var(--ink)">'+esc(item.displayName||"—")+(revoked?' <span style="font-size:10px;color:#b3261e;font-weight:800">REVOKED</span>':"")+'</div>'
+          +'<div style="font-size:11.5px;color:var(--muted);margin-top:2px;font-family:monospace">'+esc(item.username||"")+'</div>'
+          +'<div style="display:flex;gap:8px;margin-top:8px">'
+          +(revoked
+            ? '<button data-restore-user="'+i+'" style="flex:1;height:36px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;font-size:12.5px">Restore access</button>'
+            : '<button data-revoke-user="'+i+'" style="flex:1;height:36px;border:1px solid #f0b8b3;border-radius:8px;background:#fff;color:#b3261e;font-weight:700;font-size:12.5px">Revoke access</button>')
+          +'</div></div>';
+      }).join("");
+    });
+  }
+  $("#approvedUsersList").addEventListener("click",function(e){
+    var revb=e.target.closest("[data-revoke-user]"), resb=e.target.closest("[data-restore-user]");
+    if(revb){
+      var item=MHM_approvedUsersCache[parseInt(revb.dataset.revokeUser,10)]; if(!item) return;
+      MHM_setUserRevoked(item.username,true).then(function(r){
+        toast(r.ok?(item.displayName+" ka access revoke kar diya."):"Revoke nahi ho paya.");
+        MHM_renderApprovedUsersList();
+      });
+    } else if(resb){
+      var item2=MHM_approvedUsersCache[parseInt(resb.dataset.restoreUser,10)]; if(!item2) return;
+      MHM_setUserRevoked(item2.username,false).then(function(r){
+        toast(r.ok?(item2.displayName+" ka access wapas restore kar diya."):"Restore nahi ho paya.");
+        MHM_renderApprovedUsersList();
+      });
+    }
+  });
+
+  /* ===== Save-state indicator (added) ===== */
+  var MHM_saveStateTimer=null;
+  function MHM_showSaveState(state){
+    var el=$("#saveIndicator"); if(!el) return;
+    clearTimeout(MHM_saveStateTimer);
+    if(state==="saving"){ el.textContent="Saving…"; el.style.color="var(--muted)"; el.style.opacity="1"; }
+    else if(state==="saved"){
+      el.textContent="✓ Saved"; el.style.color="#1e7e34"; el.style.opacity="1";
+      MHM_saveStateTimer=setTimeout(function(){ el.style.opacity="0"; },1800);
+    } else {
+      el.textContent="Save failed"; el.style.color="#b3261e"; el.style.opacity="1";
+    }
+  }
+
+  /* ===== Help & guide (added) ===== */
+  function MHM_openHelpPop(){
+    var role=currentUser?currentUser.role:null;
+    var officer=role&&MHM_isOfficer(role);
+    var general=role&&role.indexOf("general_")===0;
+    var common='<p><b>Letter kaise banta hai (sabke liye ek jaisa):</b></p>'
+      +'<p>1. Letter likhein.<br>2. ✒ Signatory block → <b>Insert All Three · Horizontal</b> dabayein.<br>'
+      +'3. President, Secretary, aur Treasurer — teeno apna login karke sign karenge.<br>'
+      +'4. Teeno ke sign hote hi letter <b>download/share</b> ho sakta hai — usse pehle nahi.</p>';
+    var extra='';
+    if(general){
+      extra='<p><b>Aap General User hain:</b></p>'
+        +'<p>• Aap sirf <b>apne banaye letters</b> dekh sakte hain — kisi aur user ke nahi.<br>'
+        +'• Aap khud sign/approve nahi kar sakte — sirf President/Secretary/Treasurer kar sakte hain.<br>'
+        +'• Aapka letter bhi teeno ke sign ke baad hi download hoga.</p>';
+    } else if(role==="secretary"){
+      extra='<p><b>Aap Secretary hain — aapke paas extra powers hain:</b></p>'
+        +'<p>• <b>👤 User requests</b> — naye account requests aap hi approve/reject karte hain.<br>'
+        +'• Approved users ka access zaroorat par revoke/restore kar sakte hain.<br>'
+        +'• Baaki President/Treasurer jaisi hi powers (sign, reject, letters dekhna) bhi hain.</p>';
+    } else if(officer){
+      extra='<p><b>Aap '+esc(MHM_ROLE_LABEL[role]||"")+' hain:</b></p>'
+        +'<p>• Kisi bhi pending letter ko <b>sign & approve</b> ya <b>reject</b> kar sakte hain.<br>'
+        +'• Sab letters (kisi ne bhi banaye ho) dekh sakte hain — Awaiting signatures aur Signed &amp; approved dono mein.<br>'
+        +'• Apna signature ✒ Signature &amp; stamp mein save kar sakte hain.</p>';
+    }
+    var footer='<p style="color:var(--muted);font-size:12px">🔑 Change password — kabhi bhi apna password badal sakte hain.<br>'
+      +'🔍 Verify document — kisi bhi letter ka Doc ID/Code check kar sakte hain.</p>';
+    $("#helpBody").innerHTML=common+extra+footer;
+    $("#helpPop").classList.add("show");
   }
 
   setMargin("normal"); setAlign("left"); applyFs(); renderSig(); loadBearers();
