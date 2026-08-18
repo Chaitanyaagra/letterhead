@@ -3395,9 +3395,12 @@ try{
   var MHM_USERS = [
     {role:"president", name:"Bhanwar Singh",     u:atob("YmhhbndhciBzaW5naA=="), p:atob("YmhhbndhckAxMjM=")},
     {role:"secretary", name:"Chaitanya Agrawal", u:atob("Y2hhaXRhbnlhIGFncmF3YWw="), p:atob("Y2hhaXRhbnlhQDEyMw==")},
-    {role:"treasurer", name:"Prakash Kanodia",   u:atob("cHJha2FzaCBrYW5vZGlh"), p:atob("cHJha2FzaEAxMjM=")}
+    {role:"treasurer", name:"Prakash Kanodia",   u:atob("cHJha2FzaCBrYW5vZGlh"), p:atob("cHJha2FzaEAxMjM=")},
+    {role:"jointsecretary", name:"Pradeep Poonia", u:atob("cHJhZGVlcCBwb29uaWE="), p:atob("cHJhZGVlcEAxMjM=")}
   ];
-  var MHM_ROLE_LABEL = {president:"President", secretary:"Secretary", treasurer:"Treasurer"};
+  var MHM_ROLE_LABEL = {president:"President", secretary:"Secretary", treasurer:"Treasurer", jointsecretary:"Joint Secretary"};
+  var MHM_FULL_VISIBILITY_ROLES = ["president","secretary","treasurer","jointsecretary"];
+  function MHM_canSeeAllLetters(role){ return MHM_FULL_VISIBILITY_ROLES.indexOf(role)>=0; }
   var currentUser = null;
   var $=function(s){return document.querySelector(s);};
   document.documentElement.style.setProperty("--sheet-bg",'url("'+LH+'")');
@@ -4546,7 +4549,7 @@ try{
     $("#pendingList").innerHTML='<p style="color:var(--muted);font-size:12.5px">Loading…</p>';
     $("#pendingPop").classList.add("show");
     if(!role) return;
-    var src0=MHM_isOfficer(role)?MHM_listPendingForRole(role):MHM_listMyPendingLetters();
+    var src0=MHM_canSeeAllLetters(role)?MHM_listPendingForRole(role):MHM_listMyPendingLetters();
     src0.then(function(list){
       MHM_pendingCache=list;
       if(!list.length){ $("#pendingList").innerHTML='<p style="color:var(--muted);font-size:12.5px">Koi pending letter nahi hai.</p>'; return; }
@@ -4739,7 +4742,7 @@ try{
   function MHM_openApprovedPop(){
     $("#approvedList").innerHTML='<p style="color:var(--muted);font-size:12.5px">Loading…</p>';
     $("#approvedPop").classList.add("show");
-    var src1=(currentUser&&MHM_isOfficer(currentUser.role))?MHM_listApprovedLetters():MHM_listMyApprovedLetters();
+    var src1=(currentUser&&MHM_canSeeAllLetters(currentUser.role))?MHM_listApprovedLetters():MHM_listMyApprovedLetters();
     src1.then(function(list){
       MHM_approvedCache=list;
       if(!list.length){ $("#approvedList").innerHTML='<p style="color:var(--muted);font-size:12.5px">Abhi koi approved letter nahi hai.</p>'; return; }
@@ -4764,7 +4767,7 @@ try{
   /* ===== Pending-count badge (added) ===== */
   function MHM_refreshPendingBadge(){
     if(!currentUser) return;
-    var srcB=MHM_isOfficer(currentUser.role)?MHM_listPendingForRole(currentUser.role):MHM_listMyPendingLetters();
+    var srcB=MHM_canSeeAllLetters(currentUser.role)?MHM_listPendingForRole(currentUser.role):MHM_listMyPendingLetters();
     srcB.then(function(list){
       var b=$("#pendingBadge"); if(!b) return;
       if(list.length>0){ b.textContent=String(list.length); b.style.display="inline-block"; }
@@ -5001,6 +5004,11 @@ try{
         +'<p>• <b>👤 User requests</b> — naye account requests aap hi approve/reject karte hain.<br>'
         +'• Approved users ka access zaroorat par revoke/restore kar sakte hain.<br>'
         +'• Baaki President/Treasurer jaisi hi powers (sign, reject, letters dekhna) bhi hain.</p>';
+    } else if(role==="jointsecretary"){
+      extra='<p><b>Aap Joint Secretary hain:</b></p>'
+        +'<p>• Aap <b>sabhi letters dekh sakte hain</b> — kisne kya banaya, sab kuch (Awaiting signatures aur Signed &amp; approved dono mein).<br>'
+        +'• Aap khud sign/approve nahi kar sakte — sirf President/Secretary/Treasurer kar sakte hain.<br>'
+        +'• Aapka apna banaya letter bhi teeno ke sign ke baad hi download hoga.</p>';
     } else if(officer){
       extra='<p><b>Aap '+esc(MHM_ROLE_LABEL[role]||"")+' hain:</b></p>'
         +'<p>• Kisi bhi pending letter ko <b>sign & approve</b> ya <b>reject</b> kar sakte hain.<br>'
