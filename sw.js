@@ -1,5 +1,5 @@
 const C='mhm-letter-v1',R='mhm-letter-r1';
-const PRE=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./icon-512-maskable.png','./apple-touch-icon-180.png','./apple-touch-icon-167.png','./apple-touch-icon-152.png','./apple-touch-icon-120.png'];
+const PRE=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./icon-512-maskable.png','./apple-touch-icon-180.png','./apple-touch-icon-167.png','./apple-touch-icon-152.png','./apple-touch-icon-120.png','./letterhead-bg.jpg','./seal.png','./login-logo.png'];
 const CDN=['www.gstatic.com','cdnjs.cloudflare.com'];
 const SKIP=['firestore.googleapis.com','firebase.googleapis.com','identitytoolkit.googleapis.com','securetoken.googleapis.com'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(PRE)).then(()=>self.skipWaiting()).catch(err=>{console.error('SW precache failed — offline mode may be incomplete until this is fixed:',err);}));});
